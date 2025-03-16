@@ -44,6 +44,32 @@ def initialize():
     initialize_logger()
     # RAGのRetrieverを作成
     initialize_retriever()
+    # サイドバーにラジオボタンを表示
+    display_sidebar()
+
+def display_sidebar():
+    """
+    サイドバーにラジオボタンと説明を表示
+    """
+    st.sidebar.title("モード選択")
+    if "mode" not in st.session_state:
+        st.session_state.mode = ct.ANSWER_MODE_1
+
+    mode = st.sidebar.radio(
+        "モードを選択してください",
+        options=[ct.ANSWER_MODE_1, ct.ANSWER_MODE_2],
+        index=0,
+        key="mode"
+    )
+
+    # if st.session_state.mode == ct.ANSWER_MODE_1:
+    st.sidebar.markdown("**【「社内文書検索」を選択した場合】**")
+    st.sidebar.info("入力内容と関連性が高い社内文書のありかを検索できます。")
+    st.sidebar.code("【入力例】\n社員の育成方針に関するMTGの議事録", wrap_lines=True, language=None)
+    # else:
+    st.sidebar.markdown("**【「社内問い合わせ」を選択した場合】**")
+    st.sidebar.info("質問・要望に対して、社内文書の情報をもとに回答を得られます。")
+    st.sidebar.code("【入力例】\n人事部に所属している従業員情報を一覧化して", wrap_lines=True, language=None)
 
 
 def initialize_logger():
@@ -123,8 +149,8 @@ def initialize_retriever():
     
     # チャンク分割用のオブジェクトを作成
     text_splitter = CharacterTextSplitter(
-        chunk_size=500,
-        chunk_overlap=50,
+        chunk_size=ct.CHUNK_SIZE,
+        chunk_overlap=ct.CHUNK_OVERLAP,
         separator="\n"
     )
 
@@ -135,7 +161,7 @@ def initialize_retriever():
     db = Chroma.from_documents(splitted_docs, embedding=embeddings)
 
     # ベクターストアを検索するRetrieverの作成
-    st.session_state.retriever = db.as_retriever(search_kwargs={"k": 3})
+    st.session_state.retriever = db.as_retriever(search_kwargs={"k": ct.NUM_RELATED_DOCS})
 
 
 def initialize_session_state():
