@@ -19,6 +19,8 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 import constants as ct
+import pandas as pd
+from langchain.schema import Document
 
 
 ############################################################
@@ -240,10 +242,15 @@ def file_load(path, docs_all):
 
     # 想定していたファイル形式の場合のみ読み込む
     if file_extension in ct.SUPPORTED_EXTENSIONS:
-        # ファイルの拡張子に合ったdata loaderを使ってデータ読み込み
-        loader = ct.SUPPORTED_EXTENSIONS[file_extension](path)
-        docs = loader.load()
-        docs_all.extend(docs)
+        # CSVファイルの場合、各行を1つのドキュメントに統合してリストに追加
+        if file_extension == ".csv":
+            docs = read_csv_as_single_document(path)
+            docs_all.extend(docs)
+        else:
+            # ファイルの拡張子に合ったdata loaderを使ってデータ読み込み
+            loader = ct.SUPPORTED_EXTENSIONS[file_extension](path)
+            docs = loader.load()
+            docs_all.extend(docs)
 
 
 def adjust_string(s):
@@ -268,3 +275,22 @@ def adjust_string(s):
     
     # OSがWindows以外の場合はそのまま返す
     return s
+
+
+def read_csv_as_single_document(file_path):
+    """
+    CSVファイルを読み込み、各行を1つのドキュメントに統合する関数
+
+    Args:
+        file_path: CSVファイルのパス
+
+    Returns:
+        統合されたドキュメントのリスト
+    """
+    df = pd.read_csv(file_path)
+    document_text = ""
+    for index, row in df.iterrows():
+        row_text = ", ".join([f"{col}: {row[col]}" for col in df.columns])
+        document_text += row_text + "\n"
+    # print(document_text)  # デバッグ出力
+    return [Document(page_content=document_text, metadata={"source": file_path})]

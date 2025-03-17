@@ -113,7 +113,7 @@ GET_LLM_RESPONSE_ERROR_MESSAGE = "回答生成に失敗しました。"
 DISP_ANSWER_ERROR_MESSAGE = "回答表示に失敗しました。"
 
 # ベクターストアから取り出す関連ドキュメントの数
-NUM_RELATED_DOCS = 5
+NUM_RELATED_DOCS = 20
 
 # ドキュメントのチャンク分割設定
 CHUNK_SIZE = 500

@@ -140,6 +140,9 @@ def display_search_llm_response(llm_response):
     Returns:
         LLMからの回答を画面表示用に整形した辞書データ
     """
+    # デバッグ出力
+    print(llm_response)
+
     # LLMからのレスポンスに参照元情報が入っており、かつ「該当資料なし」が回答として返された場合
     if llm_response["context"] and llm_response["answer"] != ct.NO_DOC_MATCH_ANSWER:
 
@@ -147,7 +150,10 @@ def display_search_llm_response(llm_response):
         # ユーザー入力値と最も関連性が高いメインドキュメントのありかを表示
         # ==========================================
         # LLMからのレスポンス（辞書）の「context」属性の中の「0」に、最も関連性が高いドキュメント情報が入っている
-        main_file_path = llm_response["context"][0].metadata["source"]
+        if "source" in llm_response["context"][0].metadata:
+            main_file_path = llm_response["context"][0].metadata["source"]
+        else:
+            main_file_path = "不明なソース"
 
         # 補足メッセージの表示
         if "page" in llm_response["context"][0].metadata:
@@ -181,7 +187,10 @@ def display_search_llm_response(llm_response):
         # 「source_documents」内のリストの2番目以降をスライスで参照（2番目以降がなければfor文内の処理は実行されない）
         for document in llm_response["context"][1:]:
             # ドキュメントのファイルパスを取得
-            sub_file_path = document.metadata["source"]
+            if "source" in document.metadata:
+                sub_file_path = document.metadata["source"]
+            else:
+                sub_file_path = "不明なソース"
 
             # メインドキュメントのファイルパスと重複している場合、処理をスキップ（表示しない）
             if sub_file_path == main_file_path:
@@ -271,6 +280,9 @@ def display_contact_llm_response(llm_response):
     Returns:
         LLMからの回答を画面表示用に整形した辞書データ
     """
+    # デバッグ出力
+    print("LLM Response:", llm_response)  # デバッグ出力
+
     # LLMからの回答を表示
     st.markdown(llm_response["answer"])
 
@@ -290,7 +302,10 @@ def display_contact_llm_response(llm_response):
         # LLMが回答生成の参照元として使ったドキュメントの一覧が「context」内のリストの中に入っているため、ループ処理
         for document in llm_response["context"]:
             # ファイルパスを取得
-            file_path = document.metadata["source"]
+            if "source" in document.metadata:
+                file_path = document.metadata["source"]
+            else:
+                file_path = "不明なソース"
             # ファイルパスの重複は除去
             if file_path in file_path_list:
                 continue
@@ -300,7 +315,7 @@ def display_contact_llm_response(llm_response):
                 # ページ番号を取得
                 page_number = document.metadata["page"]
                 # 「ファイルパス」と「ページ番号」
-                file_info = f"{file_path}"
+                file_info = f"{file_path} - ページ {page_number + 1}"
             else:
                 # 「ファイルパス」のみ
                 file_info = f"{file_path}"
